@@ -13,29 +13,29 @@ model Usuario {
   correo     String      @unique
   contraseña String
 
-  categorias Categoria[] //
+  categorias Categoria[]
   tareas     Tarea[]
+  historiales HistorialTarea[]
 }
 
+
 model Tarea {
-  id          String     @id @default(uuid())
-  titulo      String
-  descripcion String
-  fechaLimite DateTime
-  completada  Boolean    @default(false)
-  prioridad   String
-
-  usuarioId   String
-  usuario     Usuario    @relation(fields: [usuarioId], references: [id])
-
-  categoriaId String?
-  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
-
-  etiquetas   TareaEtiqueta[]
-
-  tareaPadreId String?
-  tareaPadre   Tarea?     @relation("Subtareas", fields: [tareaPadreId], references: [id])
-  subtareas    Tarea[]    @relation("Subtareas") 
+  id            String     @id @default(uuid())
+  titulo        String
+  descripcion   String
+  fechaLimite   DateTime
+  completada    Boolean    @default(false)
+  prioridad     String
+  usuarioId     String
+  usuario       Usuario    @relation(fields: [usuarioId], references: [id])
+  categoriaId   String?
+  categoria     Categoria? @relation(fields: [categoriaId], references: [id])
+  etiquetas     TareaEtiqueta[]
+  tareaPadreId  String?
+  tareaPadre    Tarea?     @relation("Subtareas", fields: [tareaPadreId], references: [id])
+  subtareas     Tarea[]    @relation("Subtareas")
+  
+  historiales   HistorialTarea[]
 }
 
 model Categoria {
@@ -59,6 +59,19 @@ model TareaEtiqueta {
   tareaId    String
   etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
   etiquetaId String
+}
+
+model HistorialTarea {
+  id            String   @id @default(uuid())
+  tareaId       String
+  tarea         Tarea    @relation(fields: [tareaId], references: [id])
+  usuarioId     String
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  tipoEvento    String   // CREACION, EDICION, FINALIZACION
+  campo         String?  //para ediciones
+  valorAnterior String?
+  valorNuevo    String?
+  fecha         DateTime @default(now())
 }
 
 
