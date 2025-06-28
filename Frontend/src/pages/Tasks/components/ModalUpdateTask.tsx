@@ -10,7 +10,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -20,24 +22,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 
-export function DialogNewTask() {
+export function ModalUpdateTarea({ children }: { children: React.ReactNode }) {
   return (
     <Dialog>
       <form>
         <DialogTrigger asChild>
-          <div className="text-emerald-700 font-semibold px-4 py-2 border-2 border-emerald-700 rounded hover:bg-emerald-50 transition-colors cursor-pointer">
-            Nueva Tarea
-          </div>
+          {children}
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Crear nueva tarea</DialogTitle>
+            <DialogTitle>Actualizar Tarea</DialogTitle>
             <DialogDescription>
-              Completa los detalles para tu nueva tarea.
+              Completa los detalles para actualizar la tarea.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
@@ -74,7 +71,7 @@ export function DialogNewTask() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit">Guardar cambios</Button>
           </DialogFooter>
         </DialogContent>
       </form>

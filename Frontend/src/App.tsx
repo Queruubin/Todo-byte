@@ -3,14 +3,16 @@ import { Login } from "./pages/Authentication/Login";
 import axios from 'axios'
 import { TasksPage } from "./pages/Tasks/TasksPage";
 import { Layout } from "./common/components/HomeLayout";
+import { Register } from "./pages/Authentication/Register";
 
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/';
 
 
 export function App () {
   return (
       <Routes>
         <Route path="/" index element={<Login />} />
+        <Route path="/register" index element={<Register />} />
 
         <Route element={<Layout />}>
           <Route index path="tasks" element={<TasksPage />} />

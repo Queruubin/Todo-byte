@@ -1,10 +1,13 @@
 import { Router } from 'express';
-import { register } from '../handlers/auth_handler';
+import { login, register } from '../handlers/auth_handler';
 
 
 const router = Router();
 
-router.post('/register', register as any);
+router.put('/register', register as any);
+
+router.post('/login', login as any);
+
 
 
 

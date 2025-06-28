@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { registrarEventoHistorial, obtenerHistorialPorTarea } from "./historial_handler";
+import { schemaTask } from "../schemas/task";
 
 const prisma = new PrismaClient();
 
@@ -33,26 +34,24 @@ export const crearTarea = async (
 
   const usuarioId = id;
 
-  if (!titulo || !descripcion || !fechaLimite || !prioridad || !usuarioId) {
-    return res
-      .status(400)
-      .json({ mensaje: "Todos los campos son obligatorios" });
+
+  const parseResult = schemaTask.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      mensaje: "Datos inválidos",
+    });
   }
 
-  const partes = fechaLimite.split("/");
-  if (partes.length !== 3) {
-    return res
-      .status(400)
-      .json({ mensaje: "Formato de fecha inválido. Usa dd/mm/yyyy" });
-  }
+  const fechaActual = new Date(fechaLimite);
 
-  const [dia, mes, año] = partes;
-  const fechaConvertida = new Date(`${año}-${mes}-${dia}`);
+  const opcionesFecha: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  };
+  const fechaConvertida = new Intl.DateTimeFormat('es-ES', opcionesFecha).format(fechaActual);
+
   console.log("Fecha convertida:", fechaConvertida);
-
-  if (isNaN(fechaConvertida.getTime())) {
-    return res.status(400).json({ mensaje: "La fecha no es válida" });
-  }
 
   try {
     const nuevaTarea = await prisma.tarea.create({
@@ -122,10 +121,23 @@ export const obtenerTareaPorId = async (req: Request, res: Response) => {
   }
 };
 
+export const obtenerTareasPorCategoria = async (req: Request, res: Response) => {
+  const { categoriaId } = req.params;
+  try {
+    const tareas = await prisma.tarea.findMany({
+      where: { categoriaId },
+      include: { etiquetas: true, categoria: true, subtareas: true },
+    });
+    res.json(tareas);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener tareas por categoría" });
+  }
+}
+
 // Actualizar una tarea
 export const actualizarTarea = async (req: Request, res: Response) => {
   const { id } = req.params;
-  let data = req.body;
+  const data = req.body;
   const usuarioId = req.body.id; // ID del usuario que hace la modificación
 
   try {
