@@ -8,8 +8,59 @@ datasource db {
 }
 
 model Usuario {
-  id         String   @id @default(uuid())
+  id         String      @id @default(uuid())
   nombre     String
-  correo     String   @unique
+  correo     String      @unique
   contraseña String
+
+  categorias Categoria[] //
+  tareas     Tarea[]
 }
+
+model Tarea {
+  id          String     @id @default(uuid())
+  titulo      String
+  descripcion String
+  fechaLimite DateTime
+  completada  Boolean    @default(false)
+  prioridad   String
+
+  usuarioId   String
+  usuario     Usuario    @relation(fields: [usuarioId], references: [id])
+
+  categoriaId String?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+
+  etiquetas   TareaEtiqueta[]
+
+  tareaPadreId String?
+  tareaPadre   Tarea?     @relation("Subtareas", fields: [tareaPadreId], references: [id])
+  subtareas    Tarea[]    @relation("Subtareas") 
+}
+
+model Categoria {
+  id        String   @id @default(uuid())
+  nombre    String
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  tareas    Tarea[]
+}
+
+model Etiqueta {
+  id     String  @id @default(uuid())
+  nombre String  @unique
+
+  tareas TareaEtiqueta[]
+}
+
+model TareaEtiqueta {
+  id         String   @id @default(uuid())
+  tarea      Tarea    @relation(fields: [tareaId], references: [id])
+  tareaId    String
+  etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
+  etiquetaId String
+}
+
+
+
+
