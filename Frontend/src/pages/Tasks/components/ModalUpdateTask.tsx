@@ -50,7 +50,7 @@ export function ModalUpdateTarea({ children }: { children: React.ReactNode }) {
               <Label htmlFor="username-1">Dificultad</Label>
               <Select >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select a fruit" />
+                  <SelectValue placeholder="Selecciona la dificultad" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

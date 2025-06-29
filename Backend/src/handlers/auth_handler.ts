@@ -1,10 +1,17 @@
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authSchema } from '../schemas/auth';
+import { AuthSchema, authSchema, loginSchema } from '../schemas/auth';
 import { comparePassword, hashPassword } from '../utils/hashPassword';
 import { generateJwt } from '../utils/generateJwt';
 
 const prisma = new PrismaClient();
+
+const options = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'None',
+  maxAge: 24 * 60 * 60 * 1000
+};
 
 export const register = async (req: Request, res: Response) => {
   
@@ -23,6 +30,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(409).json({ mensaje: 'El usuario ya existe' });
     }
 
+    // Hash the password before storing it
     const hashedPassword = await hashPassword(password);
 
     const nuevoUsuario = await prisma.usuario.create({
@@ -35,12 +43,14 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const token = generateJwt(payload);
+    res.cookie('token', token, options as CookieOptions)
+
+    const { contraseña, ...usuarioSinContraseña } = nuevoUsuario;
+
 
     return res.status(201).json({ 
       mensaje: 'Usuario registrado', 
-      usuario: nuevoUsuario,
-      token: token
-
+      usuario: usuarioSinContraseña
     });
 
   } catch (error) {
@@ -50,22 +60,24 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { correo, contraseña } = req.body;
+  const { email, password } = req.body;
 
-  const result = authSchema.safeParse({ nombre: '', correo, contraseña });
+  const result = loginSchema.safeParse({ email, password });
   if (!result.success) {
+    console.log('Contraseña incorrecta');
     return res.status(400).json({ mensaje: result.error.errors[0].message });
   }
 
   try {
-    const usuario = await prisma.usuario.findUnique({ where: { correo } });
+    const usuario = await prisma.usuario.findUnique({ where: { correo: email } });
 
     if (!usuario) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
 
-    const isPasswordValid = await comparePassword(contraseña, usuario.contraseña);
+    const isPasswordValid = await comparePassword(password, usuario.contraseña);
     if (!isPasswordValid) {
+      
       return res.status(401).json({ mensaje: 'Contraseña incorrecta' });
     }
 
@@ -76,10 +88,14 @@ export const login = async (req: Request, res: Response) => {
 
     const token = generateJwt(payload);
 
+    res.cookie('token', token, options as CookieOptions)
+
+    const { contraseña, ...usuarioSinContraseña } = usuario;
+
+
     return res.status(200).json({
       mensaje: 'Inicio de sesión exitoso',
-      usuario,
-      token
+      usuario: usuarioSinContraseña,
     });
 
   } catch (error) {

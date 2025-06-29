@@ -11,4 +11,12 @@ export const authSchema = z.object({
     .max(100, "La contraseña no debe exceder 100 caracteres"),
 });
 
+export const loginSchema = z.object({
+  email: z.string()
+    .email("Correo electrónico inválido"),
+  password: z.string()
+    .min(6, "La contraseña debe tener al menos 6 caracteres")
+    .max(100, "La contraseña no debe exceder 100 caracteres"),
+}).strict();
+
 export type AuthSchema = z.infer<typeof authSchema>;
