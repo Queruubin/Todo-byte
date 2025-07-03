@@ -8,72 +8,64 @@ datasource db {
 }
 
 model Usuario {
-  id         String      @id @default(uuid())
-  nombre     String
-  correo     String      @unique
+  id          String           @id @default(uuid())
+  nombre      String
+  correo      String           @unique
   contraseña String
-
-  categorias Categoria[]
-  tareas     Tarea[]
+  categorias  Categoria[]
   historiales HistorialTarea[]
+  tareas      Tarea[]
 }
 
-
 model Tarea {
-  id            String     @id @default(uuid())
-  titulo        String
-  descripcion   String
-  fechaLimite   DateTime
-  completada    Boolean    @default(false)
-  prioridad     String
-  usuarioId     String
-  usuario       Usuario    @relation(fields: [usuarioId], references: [id])
-  categoriaId   String?
-  categoria     Categoria? @relation(fields: [categoriaId], references: [id])
-  etiquetas     TareaEtiqueta[]
-  tareaPadreId  String?
-  tareaPadre    Tarea?     @relation("Subtareas", fields: [tareaPadreId], references: [id])
-  subtareas     Tarea[]    @relation("Subtareas")
-  
-  historiales   HistorialTarea[]
+  id           String           @id @default(uuid())
+  titulo       String
+  descripcion  String
+  fechaLimite  DateTime
+  completada   Boolean          @default(false)
+  prioridad    String
+  usuarioId    String
+  categoriaId  String?
+  tareaPadreId String?
+  historiales  HistorialTarea[]
+  categoria    Categoria?       @relation(fields: [categoriaId], references: [id])
+  tareaPadre   Tarea?           @relation("Subtareas", fields: [tareaPadreId], references: [id])
+  subtareas    Tarea[]          @relation("Subtareas")
+  usuario      Usuario          @relation(fields: [usuarioId], references: [id])
+  etiquetas    TareaEtiqueta[]
 }
 
 model Categoria {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   nombre    String
   usuarioId String
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
   tareas    Tarea[]
 }
 
 model Etiqueta {
-  id     String  @id @default(uuid())
-  nombre String  @unique
-
+  id     String          @id @default(uuid())
+  nombre String          @unique
   tareas TareaEtiqueta[]
 }
 
 model TareaEtiqueta {
   id         String   @id @default(uuid())
-  tarea      Tarea    @relation(fields: [tareaId], references: [id])
   tareaId    String
-  etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
   etiquetaId String
+  etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
+  tarea      Tarea    @relation(fields: [tareaId], references: [id])
 }
 
 model HistorialTarea {
   id            String   @id @default(uuid())
   tareaId       String
-  tarea         Tarea    @relation(fields: [tareaId], references: [id])
   usuarioId     String
-  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
-  tipoEvento    String   // CREACION, EDICION, FINALIZACION
-  campo         String?  //para ediciones
+  tipoEvento    String
+  campo         String?
   valorAnterior String?
   valorNuevo    String?
   fecha         DateTime @default(now())
+  tarea         Tarea    @relation(fields: [tareaId], references: [id])
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
 }
-
-
-
-

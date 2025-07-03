@@ -2,9 +2,9 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-/**
- * Registra un evento en el historial de tareas
- */
+
+//Registra un evento en el historial de tareas
+ 
 export async function registrarEventoHistorial({
   tareaId,
   usuarioId,
@@ -32,9 +32,8 @@ export async function registrarEventoHistorial({
   });
 }
 
-/**
- * Obtiene el historial de cambios de una tarea
- */
+//Obtiene el historial de cambios de una tarea
+ 
 export async function obtenerHistorialPorTarea(tareaId: string) {
   return await prisma.historialTarea.findMany({
     where: {
