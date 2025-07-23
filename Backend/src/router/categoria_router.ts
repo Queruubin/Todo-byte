@@ -10,8 +10,8 @@ import {
 
 const categoriaRouter = Router();
 
-categoriaRouter.post("/categorias", crearCategoria as any);
-categoriaRouter.get("/", obtenerCategorias);
+categoriaRouter.post("/category", crearCategoria as any);
+categoriaRouter.get("/categories", obtenerCategorias as any);
 categoriaRouter.put("/:id", actualizarCategoria);
 categoriaRouter.delete("/:id", eliminarCategoria);
 

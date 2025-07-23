@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Suspense, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { postLogin } from "./services/loginService";
 import { toast } from "sonner";
-import { isAuth } from "@/common/services/isAuth";
 import useAuth, { appSaveUser } from "@/store/userStore";
 
 interface LoginFormData {
@@ -14,27 +13,26 @@ interface LoginFormData {
 }
 
 export function Login() {
+  const { user, isAuth } = useAuth();
   const navigate = useNavigate();
-  const { data } = useQuery({
-    queryKey: [],
-    queryFn: async () => isAuth(),
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
-  if (data?.id) {
-    navigate("/tasks");
-    return null;
-  }
-  const { user } = useAuth()
-  if (user) navigate("/tasks");
 
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
+
+  useEffect(() => {
+      if (user?.id && isAuth) {
+        navigate("/tasks");
+        return;
+      }
+  }, [user, isAuth])
+
+  
   const mutation = useMutation({ mutationFn: (data: LoginFormData) => postLogin(data),
     onSuccess: (response) => {
+      console.log(response);
+      
       appSaveUser(response.usuario);
       navigate("/tasks");
     },

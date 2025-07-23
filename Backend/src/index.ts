@@ -3,6 +3,8 @@ import authRouter from './router/auth_router';
 import tareaRouter from './router/tarea_router';
 import categoriaRouter from './router/categoria_router';
 import cors from 'cors';
+import { checkJwt } from './middlewares/jwt.middleware';
+import cookieParser from 'cookie-parser';
 const app = express();
 
 const allowedOrigins = [
@@ -26,11 +28,15 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
+
+app.use('/auth', authRouter);
+app.use(checkJwt as any);
 
 // Rutas
-app.use('/auth', authRouter);
-app.use(tareaRouter);
+app.use('/tasks', tareaRouter);
 app.use(categoriaRouter)
 
 // Puerto y ejecución

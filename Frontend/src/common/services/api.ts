@@ -1,3 +1,4 @@
+import { appLogout } from "@/store/userStore";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
@@ -15,8 +16,8 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       toast.info("Tu sesión ha expirado o es inválida. Por favor, inicia sesión de nuevo.");
 
-      localStorage.removeItem('currentUser');
-      window.location.href = '/login';
+      appLogout()
+      window.location.href = '/';
       return Promise.reject(error);
     }
     return Promise.reject(error);

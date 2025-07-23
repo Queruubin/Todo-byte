@@ -40,6 +40,7 @@ export const register = async (req: Request, res: Response) => {
     const payload = {
       id: nuevoUsuario.id,
       email: nuevoUsuario.correo,
+      nombre: nuevoUsuario.nombre,
     }
 
     const token = generateJwt(payload);
@@ -84,6 +85,7 @@ export const login = async (req: Request, res: Response) => {
     const payload = {
       id: usuario.id,
       email: usuario.correo,
+      nombre: usuario.nombre,
     }
 
     const token = generateJwt(payload);
@@ -103,3 +105,18 @@ export const login = async (req: Request, res: Response) => {
     return res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
 }
+
+export const logout = (_: Request, res: Response) => {
+  res.clearCookie('token', options as CookieOptions);
+  return res.status(200).json({ mensaje: 'Sesión cerrada exitosamente' });
+}
+
+export const isLoggedIn = (req: Request, res: Response) => {
+  console.log(req.body);
+  
+  if (!req.body) {
+    return res.status(200).json({ mensaje: 'Not auth' });
+  }
+  return res.status(200).json({ mensaje: 'Is auth', usuario: req.user });
+}
+  

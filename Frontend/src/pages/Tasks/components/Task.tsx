@@ -1,13 +1,43 @@
+import type { Task } from "@/common/types/types";
 import { ModalUpdateTarea } from "./ModalUpdateTask";
+import { useMutation } from "@tanstack/react-query";
+import { updateTaskService } from "../services/updateTaskService";
+import { toast } from "sonner";
 
-enum TaskStatus {
-  Pending = 'Pending',
-  Completed = 'Completed'
+const dificultColores = {
+  Facil: 'bg-green-100 text-green-800 border-green-100',
+  Medio: 'bg-yellow-100 text-yellow-800 border-yellow-100',
+  Dificil: 'bg-red-100 text-red-800 border-red-100',
 }
 
-export function Task() {
+type TaskComponentProps = Pick<Task, 'titulo' | 'descripcion' | 'fechaLimite' | 'dificultad' | 'id' | 'completada'>;
+
+export function TaskComponent(data: TaskComponentProps) {
+  const mutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Task }) => updateTaskService(id, data),
+    onSuccess: () => {
+      toast.success("Tarea actualizada");
+      //queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+    onError: () => {
+      toast.error("Error al actualizar la tarea");
+    }
+  })
+
+  const handleUpdateTask = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    mutation.mutate({id: (data as any).id, data: { ...data, completada: !data.completada } as Task });
+    
+  }
+  
   return (
-    <ModalUpdateTarea>
+    <ModalUpdateTarea
+      data={data}
+      mutate={(partialTask) => {
+        mutation.mutate({ id: (data as any).id, data: { ...data, ...partialTask } as Task });
+      }}
+    >
       <div className="flex flex-row border-2 border-gray-200 rounded-md p-5 cursor-pointer hover:bg-gray-50 transition-colors">
         <div>
           <input
@@ -28,16 +58,23 @@ export function Task() {
             forced-colors:appearance-auto
             cursor-pointer
             forced-colors:before:hidden" 
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleUpdateTask}
+            defaultChecked={data.completada}
           />
                       
         </div>
         <div className="flex-1 flex flex-col ml-6">
-          <p className="text-gray-800 font-semibold text-lg">Tarea de ejemplo</p>
-          <p className="text-gray-600">Descripción de la tarea</p>
+          <p className="text-gray-800 font-semibold text-lg capitalize">{data.titulo}</p>
+          <p className="text-gray-600">{data.descripcion.charAt(0).toUpperCase() + data.descripcion.slice(1)}</p>
           <div className="flex flex-row justify-between items-center mt-2">
-            <p>Fecha: {new Date().toLocaleDateString()}</p>
-            <div className="border-emerald-800 bg-emerald-100 border-1 rounded-sm px-10">Fácil</div>
+            {new Date(data.fechaLimite).toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+            <div 
+            className={`border-1 rounded-sm px-10 ${dificultColores[data.dificultad as keyof typeof dificultColores]}`}>
+              {data.dificultad}</div>
           </div>
         </div>
       </div>

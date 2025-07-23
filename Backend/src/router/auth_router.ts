@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, register } from '../handlers/auth_handler';
+import { isLoggedIn, login, logout, register } from '../handlers/auth_handler';
 
 
 const router = Router();
@@ -7,6 +7,10 @@ const router = Router();
 router.put('/register', register as any);
 
 router.post('/login', login as any);
+
+router.post('/logout', logout as any);
+
+router.get('/isAuthenticated', isLoggedIn as any);
 
 
 

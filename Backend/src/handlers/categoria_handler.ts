@@ -5,23 +5,25 @@ const prisma = new PrismaClient();
 
 type CrearCategoriaBody = {
   nombre: string;
-  usuarioId : string;
+  id : string;
 };
 
 export const crearCategoria = async (req: Request<CrearCategoriaBody>, res: Response) => {
-  const { nombre, usuarioId } = req.body;
+  const { nombre, id } = req.body;
   console.log('nombre',nombre)
-  if (!nombre || !usuarioId) {
-    return res.status(400).json({ mensaje: 'Nombre y usuarioId son obligatorios' });
+  if (!nombre || !id) {
+    return res.status(400).json({ mensaje: 'Nombre y id son obligatorios' });
   }
 
   try {
     const nuevaCategoria = await prisma.categoria.create({
       data: {
         nombre,
-        usuario: { connect: { id: usuarioId } }
+        usuario: { connect: { id } }
       }
     });
+    console.log(nuevaCategoria);
+    
     res.status(201).json(nuevaCategoria);
   } catch (error) {
     console.error(error);
@@ -30,9 +32,24 @@ export const crearCategoria = async (req: Request<CrearCategoriaBody>, res: Resp
 };
 
 
-export const obtenerCategorias = async (_req: Request, res: Response) => {
+export const obtenerCategorias = async (req: Request, res: Response) => {
+  const id = req.query.id?.toString();
+  if (!id) {
+    return res.status(400).json({ mensaje: 'El id del usuario es obligatorio' });
+  }
   try {
-    const categorias = await prisma.categoria.findMany();
+    const categorias = await prisma.categoria.findMany({
+      where: {
+        usuarioId: id,
+      },
+      select: {
+        id: true,
+        nombre: true,
+      },
+      orderBy: {
+        nombre: 'asc',
+      },
+    });
     res.json(categorias);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener las categorías" });

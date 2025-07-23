@@ -1,30 +1,26 @@
 import { FaUser } from "react-icons/fa";
 import { IoSettingsSharp } from "react-icons/io5";
 import { ImExit } from "react-icons/im";
-
-
-
 import { NavLink } from "react-router-dom";
 import { GetCategories } from "./GetCategories";
+import useAuth from "@/store/userStore";
+import { ModalLogout } from "./ModalLogout";
 
 const routes = [
   {
-    path: "/user",
-    label: "Usuario",
-    icon: <FaUser />
-  },
-  {
     path: "/settings",
-    label: "Importante",
+    label: "Configuración",
     icon: <IoSettingsSharp />
   }
 ]
 
 
-export function HomeAside() {
+export function HomeAside({ hidden }: { hidden?: boolean }) {
+  const { user } = useAuth();
+  
   return (
-    <aside className="w-80 bg-gray-50 text-gray-700 p-3">
-      <h2 className="text-xl font-bold mb-4">Samuel</h2>
+    <aside className={`${hidden ? 'hidden' : 'fixed block z-50'} h-full w-full md:block md:w-80 bg-gray-50 text-gray-700 p-3`}>
+      <h2 className="text-xl font-bold mb-4">{user?.nombre}</h2>
       <GetCategories />
       <br />
       <hr />
@@ -43,9 +39,12 @@ export function HomeAside() {
             {route.label}
           </NavLink>
         ))}
-        <div className="flex items-center p-2 gap-5 rounded hover:bg-gray-200 transition-colors text-red-600 cursor-pointer">
+        <div
+        className="flex items-center p-2 gap-5 rounded hover:bg-gray-200 transition-colors text-red-600 cursor-pointer">
           <ImExit />
-          Cerrar sesión
+          <ModalLogout>
+            <p>Cerrar Sesión</p>
+          </ModalLogout>
         </div>
       </ul>
 

@@ -2,87 +2,58 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { registrarEventoHistorial, obtenerHistorialPorTarea } from "./historial_handler";
 import { schemaTask } from "../schemas/task";
+import { Task } from "../types";
 
 const prisma = new PrismaClient();
 
-type CrearTareaBody = {
-  titulo: string;
-  descripcion: string;
-  fechaLimite: string;
-  prioridad: string;
-  id: string;
-  categoriaId?: string;
-  tareaPadreId?: string;
-};
-
 // Crear tarea
 export const crearTarea = async (
-  req: Request<unknown, unknown, CrearTareaBody>,
+  req: Request<unknown, unknown, Task>,
   res: Response
 ) => {
   const {
     titulo,
     descripcion,
     fechaLimite,
+    dificultad,
     prioridad,
-    id,
     categoriaId,
-    tareaPadreId,
   } = req.body;
 
-  console.log("BODY RECIBIDO:", req.body);
-
-  const usuarioId = id;
+  const usuarioId = req.user.id;
 
 
   const parseResult = schemaTask.safeParse(req.body);
+  console.log(parseResult.error);
+  
   if (!parseResult.success) {
     return res.status(400).json({
       mensaje: "Datos inválidos",
     });
   }
 
-  const fechaActual = new Date(fechaLimite);
-
-  const opcionesFecha: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  };
-  const fechaConvertida = new Intl.DateTimeFormat('es-ES', opcionesFecha).format(fechaActual);
-
-  console.log("Fecha convertida:", fechaConvertida);
 
   try {
-    const nuevaTarea = await prisma.tarea.create({
-      data: {
-        titulo,
-        descripcion,
-        fechaLimite: fechaConvertida,
-        prioridad,
-        usuario: {
-          connect: { id: usuarioId },
-        },
-        categoria: categoriaId
-          ? {
-              connect: { id: categoriaId },
-            }
-          : undefined,
-        tareaPadre: tareaPadreId
-          ? {
-              connect: { id: tareaPadreId },
-            }
-          : undefined,
-      },
-    });
+    const data: Task = {
+      titulo,
+      descripcion,
+      fechaLimite,
+      usuarioId,
+      prioridad,
+      categoriaId,
+      dificultad,
+      completada: false,
+    };
+
+    const nuevaTarea = await prisma.tarea.create({ data });
 
     // Registrar evento en historial
-    await registrarEventoHistorial({
+    /* await registrarEventoHistorial({
       tareaId: nuevaTarea.id,
       usuarioId,
       tipoEvento: "CREACION",
-    });
-
+    }); */
+    
     return res
       .status(201)
       .json({ mensaje: "Tarea creada", tarea: nuevaTarea });
@@ -98,7 +69,7 @@ export const obtenerTareas = async (req: Request, res: Response) => {
   try {
     const tareas = await prisma.tarea.findMany({
       where: { usuarioId },
-      include: { etiquetas: true, categoria: true, subtareas: true },
+      include: { categoria: true, subtareas: true },
     });
     res.json(tareas);
   } catch (error) {
@@ -107,14 +78,22 @@ export const obtenerTareas = async (req: Request, res: Response) => {
 };
 
 // Obtener una tarea por ID
-export const obtenerTareaPorId = async (req: Request, res: Response) => {
-  const { id } = req.params;
+export const getTareasByCategory = async (req: Request, res: Response) => {
+  const id = req.params.id?.toString();
+  if (!id) {
+    return res.status(400).json({ error: "ID de tarea o usuario no proporcionado" });
+  }
+  id.toString()
   try {
-    const tarea = await prisma.tarea.findUnique({
-      where: { id },
-      include: { etiquetas: true, categoria: true, subtareas: true },
+    const tarea = await prisma.tarea.findMany({
+      where: { categoriaId: id },
+      include: { subtareas: true },
+      orderBy: {
+        completada: "asc", // Ordenar por estado de completado
+      }
     });
     if (!tarea) return res.status(404).json({ error: "Tarea no encontrada" });
+    
     res.json(tarea);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener la tarea" });
@@ -126,8 +105,13 @@ export const obtenerTareasPorCategoria = async (req: Request, res: Response) => 
   try {
     const tareas = await prisma.tarea.findMany({
       where: { categoriaId },
-      include: { etiquetas: true, categoria: true, subtareas: true },
+      include: { subtareas: true },
+      orderBy: {
+        completada: "asc", // Ordenar por estado de completado
+      }
     });
+    console.log(tareas);
+    
     res.json(tareas);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener tareas por categoría" });
@@ -138,7 +122,7 @@ export const obtenerTareasPorCategoria = async (req: Request, res: Response) => 
 export const actualizarTarea = async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = req.body;
-  const usuarioId = req.body.id; // ID del usuario que hace la modificación
+  const usuarioId = req.user.id;
 
   try {
     // Obtener la tarea actual para comparar
@@ -148,53 +132,6 @@ export const actualizarTarea = async (req: Request, res: Response) => {
 
     if (!tareaActual) {
       return res.status(404).json({ error: "Tarea no encontrada" });
-    }
-
-    // Parsear fecha si viene en el body
-    if (data.fechaLimite) {
-      const [year, month, day] = data.fechaLimite.split("/");
-      data.fechaLimite = new Date(`${year}-${month}-${day}`);
-    }
-
-    // Detectar cambios campo por campo
-    const tareaActualObj = tareaActual as any;
-    const cambios = [];
-
-    for (const key in data) {
-      if (data[key] != null && data[key] != tareaActualObj[key]) {
-        cambios.push({
-          campo: key,
-          valorAnterior:
-            tareaActualObj[key] != null
-              ? String(tareaActualObj[key])
-              : null,
-          valorNuevo: data[key] != null ? String(data[key]) : null,
-        });
-      }
-    }
-
-    // Registrar cambios en historial
-    for (const cambio of cambios) {
-      await registrarEventoHistorial({
-        tareaId: id,
-        usuarioId,
-        tipoEvento: "EDICION",
-        campo: cambio.campo,
-        valorAnterior: cambio.valorAnterior,
-        valorNuevo: cambio.valorNuevo,
-      });
-    }
-
-    // Registrar finalización si aplica
-    if (
-      data.completada === true &&
-      tareaActualObj.completada === false
-    ) {
-      await registrarEventoHistorial({
-        tareaId: id,
-        usuarioId,
-        tipoEvento: "FINALIZACION",
-      });
     }
 
     const tareaActualizada = await prisma.tarea.update({
