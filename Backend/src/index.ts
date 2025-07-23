@@ -5,7 +5,9 @@ import categoriaRouter from './router/categoria_router';
 import cors from 'cors';
 import { checkJwt } from './middlewares/jwt.middleware';
 import cookieParser from 'cookie-parser';
-const app = express();
+import { config } from 'dotenv';
+config();
+export const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',

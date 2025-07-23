@@ -63,19 +63,23 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
+  
+  
   const result = loginSchema.safeParse({ email, password });
   if (!result.success) {
     console.log('Contraseña incorrecta');
     return res.status(400).json({ mensaje: result.error.errors[0].message });
   }
-
+  
   try {
     const usuario = await prisma.usuario.findUnique({ where: { correo: email } });
-
+    const s = await prisma.usuario.findMany();
+    
     if (!usuario) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado' });
     }
-
+    
+    console.log('Login attempt:', usuario);
     const isPasswordValid = await comparePassword(password, usuario.contraseña);
     if (!isPasswordValid) {
       
@@ -89,6 +93,9 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = generateJwt(payload);
+
+    console.log('Token generado:', token);
+    
 
     res.cookie('token', token, options as CookieOptions)
 
