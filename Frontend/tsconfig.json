@@ -6,6 +6,9 @@
   ],
   "compilerOptions": {
     "baseUrl": ".",
+    "noEmitOnError": false, // <-- ¡Añade o cambia esto a false aquí!
+    "composite": true, // Común en proyectos con referencias
+
     "paths": {
       "@/*": ["./src/*"]
     }

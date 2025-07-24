@@ -85,7 +85,7 @@ export function ModalCreateCategory({ children }: { children: React.ReactNode })
             <DialogClose asChild>
               <Button variant="outline">Cancelar</Button>
             </DialogClose>
-            <Button type="submit" form="create_cateogory" >Crear categoría</Button>
+            <Button type="submit" form="create_cateogory" disabled={mutation.isPending}>Crear categoría</Button>
           </DialogFooter>
       </form>
         </DialogContent>

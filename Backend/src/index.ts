@@ -12,6 +12,7 @@ export const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://friendly-rolypoly-5f8dc5.netlify.app',
 ];
 
 // TODO: cambiar rutas de producción

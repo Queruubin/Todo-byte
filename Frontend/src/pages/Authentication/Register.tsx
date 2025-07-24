@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { postRegister } from "./services/loginService";
 import { toast } from "sonner";
+import { appSaveUser } from "@/store/userStore";
 
 export function Register() {
   const [formData, setFormData] = useState<{ email: string; password: string; nombre: string; confirmarPassword: string }>({
@@ -15,7 +16,11 @@ export function Register() {
   });
   const mutation = useMutation({ 
     mutationFn: (data: { email: string; password: string; nombre: string; confirmarPassword: string }) => postRegister(data),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log(response);
+      
+      appSaveUser(response.usuario);
+      
       navigate("/tasks");
     },
     onError: () => {

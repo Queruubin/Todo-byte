@@ -29,12 +29,13 @@ import { createTaskServices } from "../services/createTaskServices"
 import { toast } from "sonner"
 import type { Task } from "@/common/types/types"
 import useAuth from "@/store/userStore"
+import { useNavigate } from "react-router-dom"
 
 export function DialogNewTask({id}: { id: string }) {
-  const queryClient = useQueryClient();
   const formRef = useRef<HTMLFormElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,7 +49,6 @@ export function DialogNewTask({id}: { id: string }) {
 
     if (formRef.current) {
       const formData = new FormData(formRef.current);
-      console.log(formData);
       
       const taskData: Task = {
         id: "",
@@ -57,7 +57,7 @@ export function DialogNewTask({id}: { id: string }) {
         fechaLimite: new Date(formData.get("fechaLimite") as string).toISOString(),
         dificultad: formData.get("dificultad") as string,
         prioridad: "Normal",
-        categoriaId: id, // Asignar una categoría por defecto o manejarlo dinámicamente
+        categoriaId: id
       };
       mutation.mutate(taskData);
     }
@@ -67,9 +67,12 @@ export function DialogNewTask({id}: { id: string }) {
       toast.success("Tarea creada exitosamente");
       //queryClient.invalidateQueries({ queryKey: ["tasks", id] });
       setIsOpen(false)
+      window.location.reload();
     },
-    onError: () => {
+    onError: (response) => {
       toast.error("Error al crear la tarea");
+      console.log(response);
+      
     }
   })
 
@@ -124,7 +127,7 @@ export function DialogNewTask({id}: { id: string }) {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit">Crear tarea</Button>
+            <Button type="submit" disabled={mutation.isPending}>Crear tarea</Button>
           </DialogFooter>
       </form>
       

@@ -4,7 +4,8 @@ import { ModalCreateCategory } from "./ModalCreateCategorie";
 import { useQuery } from "@tanstack/react-query";
 import { getCategories } from "../services/getCategories";
 import type { Category } from "../types/types";
-import { GoDotFill } from "react-icons/go";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { ModalDeleteCat } from "./ModalDeleteCat";
 
 export function GetCategories() {
   const { data: categories, isLoading } = useQuery({
@@ -21,11 +22,15 @@ export function GetCategories() {
             key={cat.id}
             to={`task/${cat.id}/${cat.nombre}`}
             className={({ isActive }) =>
-              `flex items-center capitalize p-2 gap-5 rounded hover:bg-gray-200 transition-colors ${isActive ? "bg-gray-200" : ""
+              `flex items-center justify-between capitalize px-5 py-2 gap-5 rounded hover:bg-gray-200 transition-colors ${isActive ? "bg-gray-200" : ""
               }`
             }
           >
-            <GoDotFill className="size-3"/> {cat.nombre}
+            {cat.nombre} 
+            <ModalDeleteCat id={cat.id}>
+              <FaRegTrashAlt 
+              className="text-red-500 hover:text-red-700 cursor-pointer" />
+            </ModalDeleteCat>
           </NavLink>
         ))}
 
